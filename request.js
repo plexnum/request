@@ -418,7 +418,7 @@ Request.prototype.init = function (options) {
       self.body = Buffer.from(self.body)
     }
 
-    if (!self.hasHeader('Content-Length') || self.getHeader('Content-Length') === undefined) {
+    if (!self.hasHeader('Content-Length')) {
       var length
       if (typeof self.body === 'string') {
         length = Buffer.byteLength(self.body)
@@ -743,6 +743,16 @@ Request.prototype.start = function () {
   // should delete it for now since we handle timeouts manually for better
   // consistency with node versions before v6.8.0
   delete reqOptions.timeout
+
+  var sortedHeaders = {};
+
+  Object.keys(reqOptions.headers).sort(function(a, b) {
+    return reqOptions.headersOrder.indexOf(a) - reqOptions.headersOrder.indexOf(b);
+  }).forEach(function(sortedPropertyName) {
+     sortedHeaders[sortedPropertyName] = reqOptions.headers[sortedPropertyName];
+  });
+
+  reqOptions.headers = sortedHeaders;
 
   try {
     self.req = self.httpModule.request(reqOptions)
