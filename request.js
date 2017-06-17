@@ -380,8 +380,8 @@ Request.prototype.init = function (options) {
     )
   }
 
-  if (self.gzip && !self.hasHeader('accept-encoding')) {
-    self.setHeader('accept-encoding', 'gzip, deflate')
+  if (self.gzip && !self.hasHeader('Accept-Encoding')) {
+    self.setHeader('Accept-Encoding', 'gzip, deflate')
   }
 
   if (self.uri.auth && !self.hasHeader('authorization')) {
@@ -389,10 +389,10 @@ Request.prototype.init = function (options) {
     self.auth(uriAuthPieces[0], uriAuthPieces.slice(1).join(':'), true)
   }
 
-  if (!self.tunnel && self.proxy && self.proxy.auth && !self.hasHeader('proxy-authorization')) {
+  if (!self.tunnel && self.proxy && self.proxy.auth && !self.hasHeader('Proxy-Authorization')) {
     var proxyAuthPieces = self.proxy.auth.split(':').map(function (item) { return self._qs.unescape(item) })
     var authHeader = 'Basic ' + toBase64(proxyAuthPieces.join(':'))
-    self.setHeader('proxy-authorization', authHeader)
+    self.setHeader('Proxy-Authorization', authHeader)
   }
 
   if (self.proxy && !self.tunnel) {
@@ -418,7 +418,7 @@ Request.prototype.init = function (options) {
       self.body = Buffer.from(self.body)
     }
 
-    if (!self.hasHeader('content-length')) {
+    if (!self.hasHeader('Content-Length')) {
       var length
       if (typeof self.body === 'string') {
         length = Buffer.byteLength(self.body)
@@ -429,7 +429,7 @@ Request.prototype.init = function (options) {
       }
 
       if (length) {
-        self.setHeader('content-length', length)
+        self.setHeader('Content-Length', length)
       } else {
         self.emit('error', new Error('Argument error, options.body.'))
       }
@@ -493,8 +493,8 @@ Request.prototype.init = function (options) {
     }
     self.src = src
     if (isReadStream(src)) {
-      if (!self.hasHeader('content-type')) {
-        self.setHeader('content-type', mime.lookup(src.path))
+      if (!self.hasHeader('Content-Type')) {
+        self.setHeader('Content-Type', mime.lookup(src.path))
       }
     } else {
       if (src.headers) {
@@ -504,8 +504,8 @@ Request.prototype.init = function (options) {
           }
         }
       }
-      if (self._json && !self.hasHeader('content-type')) {
-        self.setHeader('content-type', 'application/json')
+      if (self._json && !self.hasHeader('Content-Type')) {
+        self.setHeader('Content-Type', 'application/json')
       }
       if (src.method && !self.explicitMethod) {
         self.method = src.method
@@ -556,18 +556,18 @@ Request.prototype.init = function (options) {
           return
         }
         if (self.method !== 'GET' && typeof self.method !== 'undefined') {
-          self.setHeader('content-length', 0)
+          self.setHeader('Content-Length', 0)
         }
         self.end()
       }
     }
 
-    if (self._form && !self.hasHeader('content-length')) {
+    if (self._form && !self.hasHeader('Content-Length')) {
       // Before ending the request, we had to compute the length of the whole form, asyncly
       self.setHeader(self._form.getHeaders(), true)
       self._form.getLength(function (err, length) {
         if (!err && !isNaN(length)) {
-          self.setHeader('content-length', length)
+          self.setHeader('Content-Length', length)
         }
         end()
       })
@@ -725,8 +725,8 @@ Request.prototype.start = function () {
   self.method = self.method || 'GET'
   self.href = self.uri.href
 
-  if (self.src && self.src.stat && self.src.stat.size && !self.hasHeader('content-length')) {
-    self.setHeader('content-length', self.src.stat.size)
+  if (self.src && self.src.stat && self.src.stat.size && !self.hasHeader('Content-Length')) {
+    self.setHeader('Content-Length', self.src.stat.size)
   }
   if (self._aws) {
     self.aws(self._aws, true)
@@ -978,8 +978,8 @@ Request.prototype.onRequestResponse = function (response) {
 
   response.caseless = caseless(response.headers)
 
-  if (response.caseless.has('set-cookie') && (!self._disableCookies)) {
-    var headerName = response.caseless.has('set-cookie')
+  if (response.caseless.has('Set-Cookie') && (!self._disableCookies)) {
+    var headerName = response.caseless.has('Set-Cookie')
     if (Array.isArray(response.headers[headerName])) {
       response.headers[headerName].forEach(addCookie)
     } else {
@@ -1182,8 +1182,8 @@ Request.prototype.pipeDest = function (dest) {
   var response = self.response
   // Called after the response is received
   if (dest.headers && !dest.headersSent) {
-    if (response.caseless.has('content-type')) {
-      var ctname = response.caseless.has('content-type')
+    if (response.caseless.has('Content-Type')) {
+      var ctname = response.caseless.has('Content-Type')
       if (dest.setHeader) {
         dest.setHeader(ctname, response.headers[ctname])
       } else {
@@ -1191,8 +1191,8 @@ Request.prototype.pipeDest = function (dest) {
       }
     }
 
-    if (response.caseless.has('content-length')) {
-      var clname = response.caseless.has('content-length')
+    if (response.caseless.has('Content-Length')) {
+      var clname = response.caseless.has('Content-Length')
       if (dest.setHeader) {
         dest.setHeader(clname, response.headers[clname])
       } else {
@@ -1247,8 +1247,8 @@ Request.prototype.qs = function (q, clobber) {
 Request.prototype.form = function (form) {
   var self = this
   if (form) {
-    if (!/^application\/x-www-form-urlencoded\b/.test(self.getHeader('content-type'))) {
-      self.setHeader('content-type', 'application/x-www-form-urlencoded')
+    if (!/^application\/x-www-form-urlencoded\b/.test(self.getHeader('Content-Type'))) {
+      self.setHeader('Content-Type', 'application/x-www-form-urlencoded')
     }
     self.body = (typeof form === 'string')
       ? self._qs.rfc3986(form.toString('utf8'))
@@ -1278,8 +1278,8 @@ Request.prototype.multipart = function (multipart) {
 Request.prototype.json = function (val) {
   var self = this
 
-  if (!self.hasHeader('accept')) {
-    self.setHeader('accept', 'application/json')
+  if (!self.hasHeader('Accept')) {
+    self.setHeader('Accept', 'application/json')
   }
 
   if (typeof self.jsonReplacer === 'function') {
@@ -1289,19 +1289,19 @@ Request.prototype.json = function (val) {
   self._json = true
   if (typeof val === 'boolean') {
     if (self.body !== undefined) {
-      if (!/^application\/x-www-form-urlencoded\b/.test(self.getHeader('content-type'))) {
+      if (!/^application\/x-www-form-urlencoded\b/.test(self.getHeader('Content-Type'))) {
         self.body = safeStringify(self.body, self._jsonReplacer)
       } else {
         self.body = self._qs.rfc3986(self.body)
       }
-      if (!self.hasHeader('content-type')) {
-        self.setHeader('content-type', 'application/json')
+      if (!self.hasHeader('Content-Type')) {
+        self.setHeader('Content-Type', 'application/json')
       }
     }
   } else {
     self.body = safeStringify(val, self._jsonReplacer)
-    if (!self.hasHeader('content-type')) {
-      self.setHeader('content-type', 'application/json')
+    if (!self.hasHeader('Content-Type')) {
+      self.setHeader('Content-Type', 'application/json')
     }
   }
 
@@ -1365,7 +1365,7 @@ Request.prototype.aws = function (opts, now) {
       path: self.uri.path,
       method: self.method,
       headers: {
-        'content-type': self.getHeader('content-type') || ''
+        'Content-Type': self.getHeader('Content-Type') || ''
       },
       body: self.body
     }
@@ -1374,21 +1374,21 @@ Request.prototype.aws = function (opts, now) {
       secretAccessKey: opts.secret,
       sessionToken: opts.session
     })
-    self.setHeader('authorization', signRes.headers.Authorization)
-    self.setHeader('x-amz-date', signRes.headers['X-Amz-Date'])
+    self.setHeader('Authorization', signRes.headers.Authorization)
+    self.setHeader('A-Amz-Date', signRes.headers['X-Amz-Date'])
     if (signRes.headers['X-Amz-Security-Token']) {
-      self.setHeader('x-amz-security-token', signRes.headers['X-Amz-Security-Token'])
+      self.setHeader('X-Amz-Security-Token', signRes.headers['X-Amz-Security-Token'])
     }
   } else {
     // default: use aws-sign2
     var date = new Date()
-    self.setHeader('date', date.toUTCString())
+    self.setHeader('Date', date.toUTCString())
     var auth = {
       key: opts.key,
       secret: opts.secret,
       verb: self.method.toUpperCase(),
       date: date,
-      contentType: self.getHeader('content-type') || '',
+      contentType: self.getHeader('Content-Type') || '',
       md5: self.getHeader('content-md5') || '',
       amazonHeaders: aws2.canonicalizeHeaders(self.headers)
     }
@@ -1403,7 +1403,7 @@ Request.prototype.aws = function (opts, now) {
       auth.resource = '/'
     }
     auth.resource = aws2.canonicalizeResource(auth.resource)
-    self.setHeader('authorization', aws2.authorization(auth))
+    self.setHeader('Authorization', aws2.authorization(auth))
   }
 
   return self
@@ -1441,7 +1441,7 @@ Request.prototype.jar = function (jar) {
   var cookies
 
   if (self._redirect.redirectsFollowed === 0) {
-    self.originalCookieHeader = self.getHeader('cookie')
+    self.originalCookieHeader = self.getHeader('Cookie')
   }
 
   if (!jar) {
@@ -1461,9 +1461,9 @@ Request.prototype.jar = function (jar) {
   if (cookies && cookies.length) {
     if (self.originalCookieHeader) {
       // Don't overwrite existing Cookie header
-      self.setHeader('cookie', self.originalCookieHeader + '; ' + cookies)
+      self.setHeader('Cookie', self.originalCookieHeader + '; ' + cookies)
     } else {
-      self.setHeader('cookie', cookies)
+      self.setHeader('Cookie', cookies)
     }
   }
   self._jar = jar
