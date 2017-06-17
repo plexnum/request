@@ -418,7 +418,7 @@ Request.prototype.init = function (options) {
       self.body = Buffer.from(self.body)
     }
 
-    if (!self.hasHeader('Content-Length')) {
+    if (!self.hasHeader('Content-Length') || self.getHeader('Content-Length') === undefined) {
       var length
       if (typeof self.body === 'string') {
         length = Buffer.byteLength(self.body)
