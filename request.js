@@ -744,15 +744,19 @@ Request.prototype.start = function () {
   // consistency with node versions before v6.8.0
   delete reqOptions.timeout
 
-  var sortedHeaders = {};
+  if(reqOptions.headersOrder) {
 
-  Object.keys(reqOptions.headers).sort(function(a, b) {
-    return reqOptions.headersOrder.indexOf(a) - reqOptions.headersOrder.indexOf(b);
-  }).forEach(function(sortedPropertyName) {
-     sortedHeaders[sortedPropertyName] = reqOptions.headers[sortedPropertyName];
-  });
+    var sortedHeaders = {};
 
-  reqOptions.headers = sortedHeaders;
+    Object.keys(reqOptions.headers).sort(function(a, b) {
+      return reqOptions.headersOrder.indexOf(a) - reqOptions.headersOrder.indexOf(b);
+    }).forEach(function(sortedPropertyName) {
+       sortedHeaders[sortedPropertyName] = reqOptions.headers[sortedPropertyName];
+    });
+
+    reqOptions.headers = sortedHeaders;
+
+  }
 
   try {
     self.req = self.httpModule.request(reqOptions)
